@@ -1,0 +1,793 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Oko z Orbity</title>
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;500;700;900&family=JetBrains+Mono:wght@400;700&display=swap');
+
+:root {
+  --bg: #0a0e1a;
+  --card: #111827;
+  --accent: #38bdf8;
+  --warn: #f97316;
+  --alert: #ef4444;
+  --green: #22c55e;
+  --text: #e2e8f0;
+  --muted: #64748b;
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: 'Outfit', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* Stars background */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background:
+    radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,0.8), transparent),
+    radial-gradient(1px 1px at 30% 60%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1px 1px at 50% 10%, rgba(255,255,255,0.6), transparent),
+    radial-gradient(1px 1px at 70% 80%, rgba(255,255,255,0.4), transparent),
+    radial-gradient(1px 1px at 90% 40%, rgba(255,255,255,0.7), transparent),
+    radial-gradient(1px 1px at 15% 85%, rgba(255,255,255,0.3), transparent),
+    radial-gradient(1px 1px at 85% 15%, rgba(255,255,255,0.5), transparent),
+    radial-gradient(1.5px 1.5px at 25% 45%, rgba(56,189,248,0.6), transparent),
+    radial-gradient(1.5px 1.5px at 75% 55%, rgba(56,189,248,0.4), transparent);
+  pointer-events: none;
+  z-index: 0;
+}
+
+header {
+  text-align: center;
+  padding: 24px 16px 12px;
+  position: relative;
+  z-index: 1;
+}
+
+h1 {
+  font-weight: 900;
+  font-size: 1.8rem;
+  letter-spacing: -0.5px;
+  background: linear-gradient(135deg, var(--accent), #818cf8, var(--accent));
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: shimmer 4s ease-in-out infinite;
+}
+
+@keyframes shimmer {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+.subtitle {
+  font-weight: 300;
+  font-size: 0.9rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+
+/* Alert bar */
+#alert-bar {
+  background: linear-gradient(135deg, #16a34a, #22c55e, #16a34a);
+  background-size: 200% 200%;
+  animation: shimmer-alert 3s ease-in-out infinite;
+  color: #fff;
+  text-align: center;
+  padding: 24px 20px;
+  font-weight: 900;
+  font-size: 1.4rem;
+  letter-spacing: 2px;
+  position: relative;
+  z-index: 10;
+  border-bottom: 2px solid rgba(255,255,255,0.15);
+  text-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: background 0.5s;
+}
+
+#alert-bar.danger {
+  background: linear-gradient(135deg, #dc2626, #ef4444, #dc2626);
+  background-size: 200% 200%;
+  animation: pulse-bg 2s ease-in-out infinite, shimmer-alert 3s ease-in-out infinite;
+}
+
+#alert-bar .alert-sub {
+  font-size: 0.8rem;
+  font-weight: 500;
+  letter-spacing: 1px;
+  opacity: 0.85;
+  margin-top: 4px;
+}
+
+@keyframes pulse-bg {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+
+@keyframes shimmer-alert {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}
+
+/* Map */
+#map {
+  width: 100%;
+  height: 45vh;
+  min-height: 300px;
+  position: relative;
+  z-index: 1;
+  border-top: 1px solid rgba(56,189,248,0.15);
+  border-bottom: 1px solid rgba(56,189,248,0.15);
+}
+
+/* Countdown */
+.countdown-section {
+  padding: 20px 16px;
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.countdown-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+.countdown-sat {
+  font-weight: 700;
+  color: var(--accent);
+  font-size: 1.1rem;
+  margin: 6px 0 2px;
+}
+
+.countdown-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 2.6rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: 2px;
+}
+
+.countdown-dist {
+  font-size: 0.8rem;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+/* Passes list */
+.passes-section {
+  padding: 0 16px 24px;
+  max-width: 600px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.passes-title {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  margin-bottom: 10px;
+}
+
+.pass-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: var(--card);
+  border-radius: 10px;
+  margin-bottom: 6px;
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+.pass-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.pass-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  flex: 1;
+}
+
+.pass-time {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 0.8rem;
+  color: var(--accent);
+}
+
+.pass-dist {
+  font-size: 0.7rem;
+  color: var(--muted);
+  min-width: 60px;
+  text-align: right;
+}
+
+/* Status bar */
+.status-bar {
+  text-align: center;
+  padding: 8px;
+  font-size: 0.7rem;
+  color: var(--muted);
+  position: relative;
+  z-index: 1;
+}
+
+.status-bar .dot {
+  display: inline-block;
+  width: 6px; height: 6px;
+  background: var(--green);
+  border-radius: 50%;
+  margin-right: 4px;
+  animation: blink 2s infinite;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.3; }
+}
+
+/* Loading */
+#loading {
+  position: fixed;
+  inset: 0;
+  background: var(--bg);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  transition: opacity 0.5s;
+}
+
+#loading.hidden { opacity: 0; pointer-events: none; }
+
+.loader {
+  width: 40px; height: 40px;
+  border: 3px solid rgba(56,189,248,0.2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+#loading p {
+  margin-top: 16px;
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* Leaflet overrides */
+.leaflet-control-attribution { display: none !important; }
+
+.sat-icon {
+  background: none;
+  border: none;
+}
+
+.sat-marker {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sat-marker .ring {
+  position: absolute;
+  width: 28px; height: 28px;
+  border-radius: 4px;
+  border: 2px solid var(--accent);
+  opacity: 0.4;
+  animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+.sat-marker .core {
+  width: 12px; height: 12px;
+  background: var(--accent);
+  border-radius: 2px;
+  box-shadow: 0 0 12px var(--accent);
+  position: relative;
+  z-index: 1;
+}
+
+@keyframes ping {
+  75%, 100% { transform: scale(2.5); opacity: 0; }
+}
+
+.user-marker .core {
+  background: var(--green);
+  box-shadow: 0 0 12px var(--green);
+  border-radius: 50%;
+}
+.user-marker .ring {
+  border-color: var(--green);
+  border-radius: 50%;
+}
+
+.sat-label {
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
+  font-weight: 700;
+  color: #fff;
+  background: rgba(0,0,0,0.7);
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+@media (max-width: 480px) {
+  h1 { font-size: 1.4rem; }
+  .countdown-time { font-size: 2rem; }
+  #map { height: 40vh; min-height: 250px; }
+}
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="loader"></div>
+  <p>Szukam satelitów...</p>
+</div>
+
+<header>
+  <h1>Który satelita Cię obserwuje?</h1>
+  <div class="subtitle"></div>
+</header>
+
+<div id="map"></div>
+
+<div id="alert-bar">Szukam satelitów nad Tobą...</div>
+
+<div class="countdown-section">
+  <div class="countdown-label">Najbliższy przelot</div>
+  <div class="countdown-sat" id="next-sat">—</div>
+  <div class="countdown-time" id="next-time">--:--:--</div>
+  <div class="countdown-dist" id="next-dist"></div>
+</div>
+
+<div class="passes-section">
+  <div class="passes-title">Nadchodzące przeloty (24h)</div>
+  <div id="passes-list"></div>
+</div>
+
+<div class="status-bar">
+  <span class="dot"></span>
+  <span id="status-text">Aktualizacja co sekundę · Dane orbit: CelesTrak</span>
+</div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
+<script>
+// ── CONFIG ──
+const SAT_DB = {
+  'ISS (ZARYA)':       { color: '#facc15', swath: 600, label: 'ISS' },
+  'SENTINEL-1C':       { color: '#f97316', swath: 250, label: 'S1C' },
+  'SENTINEL-2A':       { color: '#38bdf8', swath: 290, label: 'S2A' },
+  'SENTINEL-2B':       { color: '#7dd3fc', swath: 290, label: 'S2B' },
+  'SENTINEL-2C':       { color: '#0ea5e9', swath: 290, label: 'S2C' },
+  'SENTINEL-3A':       { color: '#a78bfa', swath: 1270, label: 'S3A' },
+  'SENTINEL-3B':       { color: '#c4b5fd', swath: 1270, label: 'S3B' },
+  'SENTINEL-5P':       { color: '#22c55e', swath: 2600, label: 'S5P' },
+  'LANDSAT 8':         { color: '#ef4444', swath: 185, label: 'L8' },
+  'LANDSAT 9':         { color: '#dc2626', swath: 185, label: 'L9' },
+  'TERRA':             { color: '#e879f9', swath: 2330, label: 'TERRA' },
+  'AQUA':              { color: '#c084fc', swath: 2330, label: 'AQUA' },
+  'SUOMI NPP':         { color: '#fb923c', swath: 3060, label: 'NPP' },
+  'NOAA 20 (JPSS-1)':  { color: '#fdba74', swath: 3060, label: 'N20' },
+  'METOP-B':           { color: '#86efac', swath: 2900, label: 'METB' },
+  'METOP-C':           { color: '#4ade80', swath: 2900, label: 'METC' },
+  'CRYOSAT 2':         { color: '#67e8f9', swath: 1650, label: 'CRYO' },
+  'WORLDVIEW-3':       { color: '#fca5a5', swath: 13, label: 'WV3' },
+  'NOAA 15':           { color: '#fbbf24', swath: 2900, label: 'N15' },
+  'NOAA 18':           { color: '#f59e0b', swath: 2900, label: 'N18' },
+  'NOAA 19':           { color: '#d97706', swath: 2900, label: 'N19' },
+};
+
+// Pass detection: use 500km minimum radius even for narrow-swath sats
+// so passes show up more often (user expects frequent events)
+const MIN_PASS_RADIUS = 500;
+
+function getInfo(name) {
+  if (SAT_DB[name]) return SAT_DB[name];
+  // Fuzzy match: check if DB key is contained in name or vice versa
+  const nameUp = name.toUpperCase();
+  for (const [key, val] of Object.entries(SAT_DB)) {
+    const keyUp = key.toUpperCase();
+    if (nameUp.includes(keyUp) || keyUp.includes(nameUp)) return val;
+    // Also try without parentheses (e.g. "NOAA 20 (JPSS-1)" → match "NOAA 20")
+    const nameBase = nameUp.replace(/\s*\(.*?\)\s*/g, '').trim();
+    const keyBase = keyUp.replace(/\s*\(.*?\)\s*/g, '').trim();
+    if (nameBase === keyBase || nameBase.includes(keyBase) || keyBase.includes(nameBase)) return val;
+  }
+  return { color: '#94a3b8', swath: 400, label: name.slice(0, 5) };
+}
+
+// ── HARDCODED TLE DATA (2026-02-16, updated from CelesTrak) ──
+// Works offline and from file:// protocol. TLEs valid for ~2-4 weeks.
+const HARDCODED_TLES = [
+  ['ISS (ZARYA)',
+   '1 25544U 98067A   26047.40850648  .00009877  00000+0  18925-3 0  9992',
+   '2 25544  51.6319 177.5497 0011021 104.3585 255.8628 15.48642691553036'],
+  ['SENTINEL-1C',
+   '1 62261U 24235A   26047.50969323  .00000033  00000+0  16680-4 0  9999',
+   '2 62261  98.1821  56.5394 0001314  90.7867 269.3484 14.59199500 63813'],
+  ['SENTINEL-2A',
+   '1 40697U 15028A   26047.50847870  .00000236  00000+0  10658-3 0  9993',
+   '2 40697  98.5703 124.1208 0001096  95.8159 264.3149 14.30811844556471'],
+  ['SENTINEL-2B',
+   '1 42063U 17013A   26047.50815789  .00000295  00000+0  12902-3 0  9991',
+   '2 42063  98.5704 124.0056 0001105  88.8176 271.3134 14.30812077467385'],
+  ['SENTINEL-2C',
+   '1 60989U 24157A   26047.19354934  .00000155  00000+0  75657-4 0  9992',
+   '2 60989  98.5660 123.7185 0000941  85.2564 274.8727 14.30816972 75683'],
+  ['SENTINEL-3A',
+   '1 41335U 16011A   26047.45286537  .00000138  00000+0  75211-4 0  9995',
+   '2 41335  98.6274 116.5444 0001191 103.7487 256.3826 14.26734098520846'],
+  ['SENTINEL-3B',
+   '1 43437U 18039A   26047.21562971  .00000135  00000+0  73748-4 0  9995',
+   '2 43437  98.6276 116.4572 0000616  99.9574 260.1676 14.26734438406878'],
+  ['SENTINEL-5P',
+   '1 42969U 17064A   26047.45920159  .00000071  00000+0  54776-4 0  9992',
+   '2 42969  98.7857 350.4862 0001191  79.0209 281.1100 14.19543650432430'],
+  ['SENTINEL-6A',
+   '1 46984U 20086A   26047.38011192 -.00000065  00000+0 -16885-4 0  9995',
+   '2 46984  66.0424  25.9693 0007852 270.9850  89.0265 12.80929476244853'],
+  ['LANDSAT 8',
+   '1 39084U 13008A   26047.44161355  .00000426  00000+0  10450-3 0  9998',
+   '2 39084  98.1962 119.5108 0001331  90.3314 269.8037 14.57110377680313'],
+  ['LANDSAT 9',
+   '1 49260U 21088A   26047.20137823  .00000446  00000+0  10900-3 0  9991',
+   '2 49260  98.1984 119.3291 0001301  93.0200 267.1147 14.57124561233380'],
+  ['TERRA',
+   '1 25994U 99068A   26047.41503767  .00000483  00000+0  10765-3 0  9999',
+   '2 25994  97.9640 101.6576 0001191 220.0031 197.3578 14.60991164391972'],
+  ['AQUA',
+   '1 27424U 02022A   26047.54196259  .00001140  00000+0  23763-3 0  9994',
+   '2 27424  98.4136  14.5283 0001237  48.0988  44.9915 14.61923372265648'],
+  ['SUOMI NPP',
+   '1 37849U 11061A   26047.45678056  .00000096  00000+0  66530-4 0  9998',
+   '2 37849  98.7845 349.2315 0001191   2.0852 358.0329 14.19537237741318'],
+  ['NOAA 20 (JPSS-1)',
+   '1 43013U 17073A   26047.40085247  .00000062  00000+0  50549-4 0  9992',
+   '2 43013  98.7668 348.0030 0000168 149.1100 211.0086 14.19530238427339'],
+  ['METOP-B',
+   '1 38771U 12049A   26047.46852831  .00000126  00000+0  77650-4 0  9995',
+   '2 38771  98.6689 101.2814 0001917   1.8404 358.2780 14.21437337696117'],
+  ['METOP-C',
+   '1 43689U 18087A   26047.35294858  .00000128  00000+0  78477-4 0  9994',
+   '2 43689  98.6814 109.0827 0001972 129.2253 230.9100 14.21513297377667'],
+  ['CRYOSAT 2',
+   '1 36508U 10013A   26047.47147451  .00000283  00000+0  69522-4 0  9999',
+   '2 36508  92.0221 248.0651 0002339  81.7770 278.3702 14.51908526840566'],
+  ['NOAA 15',
+   '1 25338U 98030A   26047.45483777  .00000156  00000+0  81650-4 0  9990',
+   '2 25338  98.5180  71.2895 0009891 347.8857  12.2085 14.27103684444078'],
+  ['NOAA 18',
+   '1 28654U 05018A   26047.45071273  .00000060  00000+0  54777-4 0  9996',
+   '2 28654  98.8194 128.8516 0015132 131.8075 228.4392 14.13706355 69251'],
+  ['NOAA 19',
+   '1 33591U 09005A   26047.42817595  .00000060  00000+0  55957-4 0  9995',
+   '2 33591  98.9653 118.1588 0013862  16.4560 343.7059 14.13452590877420'],
+];
+
+// ── STATE ──
+let sats = [];
+let userLat = 52.23, userLon = 21.01;
+let userLocated = false;
+let map, userMarker, satMarkers = {}, satSwaths = {};
+let passes = [];
+let satCount = 0;
+
+let tleSource = 'wbudowane';
+
+// ── INIT ──
+async function init() {
+  initMap();
+  getUserLocation();
+  await loadTLEs();
+  calculatePasses();
+  document.getElementById('loading').classList.add('hidden');
+  document.getElementById('status-text').textContent =
+    `${sats.length} satelitów · Aktualizacja co sekundę · Źródło: ${tleSource}`;
+  updateLoop();
+}
+
+function initMap() {
+  map = L.map('map', {
+    center: [20, 0],
+    zoom: 2,
+    zoomControl: false,
+    attributionControl: false,
+  });
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+    maxZoom: 18,
+  }).addTo(map);
+  L.control.zoom({ position: 'topright' }).addTo(map);
+
+}
+
+function getUserLocation() {
+  if (!navigator.geolocation) { placeUserDefault(); return; }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      userLat = pos.coords.latitude;
+      userLon = pos.coords.longitude;
+      userLocated = true;
+      placeUser();
+      map.setView([userLat, userLon], 4);
+      if (sats.length) calculatePasses();
+    },
+    () => placeUserDefault(),
+    { timeout: 8000 }
+  );
+  setTimeout(() => { if (!userLocated) placeUserDefault(); }, 3000);
+}
+
+function placeUser() {
+  if (userMarker) map.removeLayer(userMarker);
+  userMarker = L.marker([userLat, userLon], {
+    icon: L.divIcon({
+      className: 'sat-icon',
+      html: '<div class="sat-marker user-marker"><div class="ring"></div><div class="core"></div><div class="sat-label">TY</div></div>',
+      iconSize: [28, 28], iconAnchor: [14, 14],
+    })
+  }).addTo(map);
+}
+
+function placeUserDefault() {
+  if (userMarker) return;
+  placeUser();
+  map.setView([userLat, userLon], 4);
+}
+
+// ── TLE LOADING ──
+function parseTleText(text) {
+  // Parse 3-line TLE format: name\nline1\nline2
+  const lines = text.trim().split('\n').map(l => l.trim()).filter(Boolean);
+  const result = [];
+  for (let i = 0; i < lines.length - 2; i++) {
+    if (lines[i + 1].startsWith('1 ') && lines[i + 2].startsWith('2 ')) {
+      result.push({ name: lines[i], line1: lines[i + 1], line2: lines[i + 2] });
+      i += 2;
+    }
+  }
+  return result;
+}
+
+async function loadTLEs() {
+  // Start with hardcoded TLEs (always works, even offline / file://)
+  let allTles = HARDCODED_TLES.map(([name, line1, line2]) => ({ name, line1, line2 }));
+  // source tracking
+
+  // Try to fetch fresh TLEs from CelesTrak (FORMAT=tle = text, not JSON)
+  try {
+    const urls = [
+      'https://celestrak.org/NORAD/elements/gp.php?NAME=SENTINEL&FORMAT=tle',
+      'https://celestrak.org/NORAD/elements/gp.php?CATNR=25544&FORMAT=tle',
+      'https://celestrak.org/NORAD/elements/gp.php?NAME=LANDSAT&FORMAT=tle',
+      'https://celestrak.org/NORAD/elements/gp.php?NAME=METOP&FORMAT=tle',
+    ];
+    const results = await Promise.allSettled(
+      urls.map(u => fetch(u, { signal: AbortSignal.timeout(5000) }).then(r => r.ok ? r.text() : ''))
+    );
+    let fresh = [];
+    for (const r of results) {
+      if (r.status === 'fulfilled' && r.value) fresh.push(...parseTleText(r.value));
+    }
+    if (fresh.length > 5) {
+      // Merge fresh data over hardcoded (update existing, keep extras)
+      const freshMap = new Map(fresh.map(t => [t.name, t]));
+      allTles = allTles.map(t => freshMap.get(t.name) || t);
+      // Add any new sats from fresh data
+      const existing = new Set(allTles.map(t => t.name));
+      for (const t of fresh) {
+        if (!existing.has(t.name)) allTles.push(t);
+      }
+      tleSource = 'CelesTrak (live)';
+    }
+  } catch (e) { /* CORS or network — use hardcoded */ }
+
+  console.log('Loaded TLEs (' + tleSource + '):', allTles.map(t => t.name));
+
+  // Create satellite records
+  for (const tle of allTles) {
+    try {
+      const satrec = satellite.twoline2satrec(tle.line1, tle.line2);
+      if (!satrec || satrec.error) continue;
+      const info = getInfo(tle.name);
+      sats.push({ name: tle.name, satrec, ...info });
+    } catch (e) { /* skip bad TLE */ }
+  }
+
+  // Create map markers for each sat
+  for (const s of sats) {
+    const marker = L.marker([0, 0], {
+      icon: L.divIcon({
+        className: 'sat-icon',
+        html: `<div class="sat-marker"><div class="ring" style="border-color:${s.color}"></div><div class="core" style="background:${s.color};box-shadow:0 0 10px ${s.color}"></div><div class="sat-label">${s.label}</div></div>`,
+        iconSize: [28, 28], iconAnchor: [14, 14],
+      })
+    }).addTo(map);
+    satMarkers[s.name] = marker;
+
+    // Swath circle (cap display radius for huge-swath sats)
+    const displayRadius = Math.min(s.swath, 1500) * 500;
+    const circle = L.circle([0, 0], {
+      radius: displayRadius,
+      color: s.color,
+      fillColor: s.color,
+      fillOpacity: 0.05,
+      weight: 1,
+      opacity: 0.15,
+    }).addTo(map);
+    satSwaths[s.name] = circle;
+  }
+}
+
+// ── SATELLITE POSITION ──
+function getSatPosition(satrec, date) {
+  try {
+    const posVel = satellite.propagate(satrec, date);
+    if (!posVel.position) return null;
+    const gmst = satellite.gstime(date);
+    const geo = satellite.eciToGeodetic(posVel.position, gmst);
+    return {
+      lat: satellite.degreesLat(geo.latitude),
+      lon: satellite.degreesLong(geo.longitude),
+      alt: geo.height,
+    };
+  } catch (e) { return null; }
+}
+
+// ── DISTANCE ──
+function haversine(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// ── PASS PREDICTION ──
+function calculatePasses() {
+  passes = [];
+  const now = new Date();
+  const step = 20 * 1000; // 20 seconds
+  const horizon = 24 * 60 * 60 * 1000;
+
+  for (const s of sats) {
+    let inPass = false;
+    let passStart = null;
+    let minDist = Infinity;
+    const threshold = Math.max(s.swath / 2, MIN_PASS_RADIUS);
+
+    for (let t = 0; t < horizon; t += step) {
+      const date = new Date(now.getTime() + t);
+      const pos = getSatPosition(s.satrec, date);
+      if (!pos) continue;
+
+      const dist = haversine(userLat, userLon, pos.lat, pos.lon);
+
+      if (dist < threshold) {
+        if (!inPass) { inPass = true; passStart = date; minDist = dist; }
+        if (dist < minDist) minDist = dist;
+      } else if (inPass) {
+        passes.push({ name: s.name, color: s.color, label: s.label, time: passStart, dist: Math.round(minDist) });
+        inPass = false;
+        minDist = Infinity;
+      }
+    }
+  }
+
+  passes.sort((a, b) => a.time - b.time);
+  renderPasses();
+}
+
+function renderPasses() {
+  const list = document.getElementById('passes-list');
+  if (passes.length === 0) {
+    list.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:8px">Obliczam przeloty...</div>';
+    return;
+  }
+
+  list.innerHTML = passes.slice(0, 12).map(p => {
+    const timeStr = p.time.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
+    const dateStr = p.time.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+    return `<div class="pass-item">
+      <div class="pass-dot" style="background:${p.color}"></div>
+      <div class="pass-name">${p.name}</div>
+      <div class="pass-time">${dateStr} ${timeStr}</div>
+      <div class="pass-dist">${p.dist} km</div>
+    </div>`;
+  }).join('');
+}
+
+// ── UPDATE LOOP ──
+function updateLoop() {
+  setInterval(() => {
+    const now = new Date();
+    let anyOverhead = false;
+    let overheadName = '';
+    let overheadDist = Infinity;
+
+    for (const s of sats) {
+      const pos = getSatPosition(s.satrec, now);
+      if (!pos) continue;
+
+      satMarkers[s.name].setLatLng([pos.lat, pos.lon]);
+      satSwaths[s.name].setLatLng([pos.lat, pos.lon]);
+
+      const dist = haversine(userLat, userLon, pos.lat, pos.lon);
+      const threshold = Math.max(s.swath / 2, MIN_PASS_RADIUS);
+      if (dist < threshold && dist < overheadDist) {
+        anyOverhead = true;
+        overheadName = s.name;
+        overheadDist = dist;
+      }
+    }
+
+    const alertBar = document.getElementById('alert-bar');
+    if (anyOverhead) {
+      alertBar.classList.add('danger');
+      alertBar.innerHTML = `${overheadName} OBSERWUJE CIĘ TERAZ!<div class="alert-sub">odległość: ${Math.round(overheadDist)} km</div>`;
+    } else {
+      alertBar.classList.remove('danger');
+      alertBar.innerHTML = `Nikt Cię teraz nie obserwuje z kosmosu.<div class="alert-sub">No chyba, że kosmici.</div>`;
+    }
+
+    updateCountdown(now);
+  }, 1000);
+}
+
+function updateCountdown(now) {
+  const nextPass = passes.find(p => p.time > now);
+  if (!nextPass) {
+    document.getElementById('next-sat').textContent = 'Obliczam...';
+    document.getElementById('next-time').textContent = '--:--:--';
+    document.getElementById('next-dist').textContent = '';
+    return;
+  }
+
+  const diff = nextPass.time - now;
+  const h = Math.floor(diff / 3600000);
+  const m = Math.floor((diff % 3600000) / 60000);
+  const s = Math.floor((diff % 60000) / 1000);
+
+  document.getElementById('next-sat').textContent = nextPass.name;
+  document.getElementById('next-sat').style.color = nextPass.color;
+  document.getElementById('next-time').textContent =
+    (h > 0 ? h + 'h ' : '') + String(m).padStart(2, '0') + 'min ' + String(s).padStart(2, '0') + 's';
+  document.getElementById('next-dist').textContent = `odległość: ~${nextPass.dist} km`;
+}
+
+// ── START ──
+init();
+</script>
+</body>
+</html>
