@@ -281,6 +281,23 @@ h1 {
 /* Leaflet overrides */
 .leaflet-control-attribution { display: none !important; }
 
+.leaflet-popup-content-wrapper {
+  background: var(--card);
+  color: var(--text);
+  border-radius: 10px;
+  border: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5);
+}
+.leaflet-popup-tip { background: var(--card); }
+.leaflet-popup-close-button { color: var(--muted) !important; font-size: 18px !important; }
+
+.sat-popup { font-family: 'Outfit', sans-serif; min-width: 200px; }
+.sat-popup-name { font-weight: 900; font-size: 1.05rem; margin-bottom: 6px; }
+.sat-popup-desc { font-size: 0.8rem; color: var(--muted); margin-bottom: 8px; }
+.sat-popup-row { display: flex; justify-content: space-between; font-size: 0.78rem; padding: 3px 0; border-top: 1px solid rgba(255,255,255,0.05); }
+.sat-popup-row span:first-child { color: var(--muted); }
+.sat-popup-row span:last-child { font-weight: 600; font-family: 'JetBrains Mono', monospace; font-size: 0.73rem; }
+
 .sat-icon {
   background: none;
   border: none;
@@ -385,27 +402,28 @@ h1 {
 <script>
 // ── CONFIG ──
 const SAT_DB = {
-  'ISS (ZARYA)':       { color: '#facc15', swath: 600, label: 'ISS' },
-  'SENTINEL-1C':       { color: '#f97316', swath: 250, label: 'S1C' },
-  'SENTINEL-2A':       { color: '#38bdf8', swath: 290, label: 'S2A' },
-  'SENTINEL-2B':       { color: '#7dd3fc', swath: 290, label: 'S2B' },
-  'SENTINEL-2C':       { color: '#0ea5e9', swath: 290, label: 'S2C' },
-  'SENTINEL-3A':       { color: '#a78bfa', swath: 1270, label: 'S3A' },
-  'SENTINEL-3B':       { color: '#c4b5fd', swath: 1270, label: 'S3B' },
-  'SENTINEL-5P':       { color: '#22c55e', swath: 2600, label: 'S5P' },
-  'LANDSAT 8':         { color: '#ef4444', swath: 185, label: 'L8' },
-  'LANDSAT 9':         { color: '#dc2626', swath: 185, label: 'L9' },
-  'TERRA':             { color: '#e879f9', swath: 2330, label: 'TERRA' },
-  'AQUA':              { color: '#c084fc', swath: 2330, label: 'AQUA' },
-  'SUOMI NPP':         { color: '#fb923c', swath: 3060, label: 'NPP' },
-  'NOAA 20 (JPSS-1)':  { color: '#fdba74', swath: 3060, label: 'N20' },
-  'METOP-B':           { color: '#86efac', swath: 2900, label: 'METB' },
-  'METOP-C':           { color: '#4ade80', swath: 2900, label: 'METC' },
-  'CRYOSAT 2':         { color: '#67e8f9', swath: 1650, label: 'CRYO' },
-  'WORLDVIEW-3':       { color: '#fca5a5', swath: 13, label: 'WV3' },
-  'NOAA 15':           { color: '#fbbf24', swath: 2900, label: 'N15' },
-  'NOAA 18':           { color: '#f59e0b', swath: 2900, label: 'N18' },
-  'NOAA 19':           { color: '#d97706', swath: 2900, label: 'N19' },
+  'ISS (ZARYA)':       { color: '#facc15', swath: 600, label: 'ISS', desc: 'Międzynarodowa Stacja Kosmiczna', operator: 'NASA / ESA / Roskosmos', mission: 'Załogowa stacja badawcza', launched: 1998 },
+  'SENTINEL-1C':       { color: '#f97316', swath: 250, label: 'S1C', desc: 'Radar SAR', operator: 'ESA (Copernicus)', mission: 'Obserwacja terenu przez chmury, powodzie, deforestacja', launched: 2024 },
+  'SENTINEL-2A':       { color: '#38bdf8', swath: 290, label: 'S2A', desc: 'Kamera wielospektralna 10m', operator: 'ESA (Copernicus)', mission: 'Zdjęcia optyczne Ziemi, rolnictwo, lasy', launched: 2015 },
+  'SENTINEL-2B':       { color: '#7dd3fc', swath: 290, label: 'S2B', desc: 'Kamera wielospektralna 10m', operator: 'ESA (Copernicus)', mission: 'Zdjęcia optyczne Ziemi, rolnictwo, lasy', launched: 2017 },
+  'SENTINEL-2C':       { color: '#0ea5e9', swath: 290, label: 'S2C', desc: 'Kamera wielospektralna 10m', operator: 'ESA (Copernicus)', mission: 'Zdjęcia optyczne Ziemi, rolnictwo, lasy', launched: 2024 },
+  'SENTINEL-3A':       { color: '#a78bfa', swath: 1270, label: 'S3A', desc: 'Monitoring oceanów i temperatury', operator: 'ESA (Copernicus)', mission: 'Temperatura morza, chlorofil, pożary', launched: 2016 },
+  'SENTINEL-3B':       { color: '#c4b5fd', swath: 1270, label: 'S3B', desc: 'Monitoring oceanów i temperatury', operator: 'ESA (Copernicus)', mission: 'Temperatura morza, chlorofil, pożary', launched: 2018 },
+  'SENTINEL-5P':       { color: '#22c55e', swath: 2600, label: 'S5P', desc: 'Monitoring jakości powietrza', operator: 'ESA (Copernicus)', mission: 'NO₂, metan, ozon, smog', launched: 2017 },
+  'SENTINEL-6A':       { color: '#6366f1', swath: 300, label: 'S6A', desc: 'Altimetria morska', operator: 'ESA (Copernicus)', mission: 'Poziom morza, fale, wiatr', launched: 2020 },
+  'LANDSAT 8':         { color: '#ef4444', swath: 185, label: 'L8', desc: 'Kamera wielospektralna 30m', operator: 'NASA / USGS', mission: 'Najdłuższy ciągły monitoring Ziemi (od 1972)', launched: 2013 },
+  'LANDSAT 9':         { color: '#dc2626', swath: 185, label: 'L9', desc: 'Kamera wielospektralna 30m', operator: 'NASA / USGS', mission: 'Kontynuacja programu Landsat', launched: 2021 },
+  'TERRA':             { color: '#e879f9', swath: 2330, label: 'TERRA', desc: 'Flagship NASA EOS', operator: 'NASA', mission: 'Atmosfera, ląd, ocean, energia słoneczna', launched: 1999 },
+  'AQUA':              { color: '#c084fc', swath: 2330, label: 'AQUA', desc: 'Obieg wody na Ziemi', operator: 'NASA', mission: 'Chmury, opady, wilgotność gleby, lód morski', launched: 2002 },
+  'SUOMI NPP':         { color: '#fb923c', swath: 3060, label: 'NPP', desc: 'Pogoda nowej generacji', operator: 'NASA / NOAA', mission: 'Prognoza pogody, zdjęcia nocne Ziemi', launched: 2011 },
+  'NOAA 20 (JPSS-1)':  { color: '#fdba74', swath: 3060, label: 'N20', desc: 'Pogoda nowej generacji', operator: 'NOAA', mission: 'Prognoza pogody, klimat', launched: 2017 },
+  'METOP-B':           { color: '#86efac', swath: 2900, label: 'METB', desc: 'Europejska pogoda polarna', operator: 'EUMETSAT', mission: 'Temperatura, wilgotność, wiatr', launched: 2012 },
+  'METOP-C':           { color: '#4ade80', swath: 2900, label: 'METC', desc: 'Europejska pogoda polarna', operator: 'EUMETSAT', mission: 'Temperatura, wilgotność, wiatr', launched: 2018 },
+  'CRYOSAT 2':         { color: '#67e8f9', swath: 1650, label: 'CRYO', desc: 'Monitoring lodu', operator: 'ESA', mission: 'Grubość lodu morskiego i lądolodów', launched: 2010 },
+  'WORLDVIEW-3':       { color: '#fca5a5', swath: 13, label: 'WV3', desc: 'Zdjęcia 31cm (komercyjny)', operator: 'Maxar', mission: 'Zdjęcia bardzo wysokiej rozdzielczości', launched: 2014 },
+  'NOAA 15':           { color: '#fbbf24', swath: 2900, label: 'N15', desc: 'Satelita pogodowy', operator: 'NOAA', mission: 'Prognoza pogody', launched: 1998 },
+  'NOAA 18':           { color: '#f59e0b', swath: 2900, label: 'N18', desc: 'Satelita pogodowy', operator: 'NOAA', mission: 'Prognoza pogody', launched: 2005 },
+  'NOAA 19':           { color: '#d97706', swath: 2900, label: 'N19', desc: 'Satelita pogodowy', operator: 'NOAA', mission: 'Prognoza pogody', launched: 2009 },
 };
 
 // Pass detection: use 500km minimum radius even for narrow-swath sats
@@ -633,6 +651,21 @@ async function loadTLEs() {
         iconSize: [28, 28], iconAnchor: [14, 14],
       })
     }).addTo(map);
+    marker.on('click', () => {
+      const pos = getSatPosition(s.satrec, new Date());
+      const dist = pos ? Math.round(haversine(userLat, userLon, pos.lat, pos.lon)) : '—';
+      const alt = pos ? Math.round(pos.alt) : '—';
+      marker.bindPopup(`<div class="sat-popup">
+        <div class="sat-popup-name" style="color:${s.color}">${s.name}</div>
+        <div class="sat-popup-desc">${s.desc || ''}</div>
+        <div class="sat-popup-row"><span>Operator</span><span>${s.operator || '—'}</span></div>
+        <div class="sat-popup-row"><span>Misja</span><span>${s.mission || '—'}</span></div>
+        <div class="sat-popup-row"><span>Start</span><span>${s.launched || '—'}</span></div>
+        <div class="sat-popup-row"><span>Szerokość pasa</span><span>${s.swath} km</span></div>
+        <div class="sat-popup-row"><span>Wysokość</span><span>${alt} km</span></div>
+        <div class="sat-popup-row"><span>Odległość od Ciebie</span><span>${dist} km</span></div>
+      </div>`, { maxWidth: 260 }).openPopup();
+    });
     satMarkers[s.name] = marker;
 
     // Swath circle (cap display radius for huge-swath sats)
