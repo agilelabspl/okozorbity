@@ -342,6 +342,18 @@ h1 {
   border-radius: 50%;
 }
 
+.ufo-icon {
+  font-size: 28px;
+  filter: drop-shadow(0 0 8px rgba(168,85,247,0.8));
+  animation: ufo-wobble 1.5s ease-in-out infinite;
+  cursor: pointer;
+}
+
+@keyframes ufo-wobble {
+  0%, 100% { transform: rotate(-5deg) translateY(0); }
+  50% { transform: rotate(5deg) translateY(-3px); }
+}
+
 .sat-label {
   position: absolute;
   top: -20px;
@@ -819,8 +831,110 @@ function updateCountdown(now) {
   document.getElementById('next-dist').textContent = `odległość: ~${nextPass.dist} km`;
 }
 
+// ── UFO EASTER EGG ──
+const UFO_MESSAGES = [
+  'To nie satelita... To oni.',
+  'Nie machaj. Oni już Cię widzą.',
+  'Lecą po Ciebie. Żartujemy. A może nie.',
+  'Niezidentyfikowany obiekt. Zachowaj spokój.',
+  'UFO potwierdzone. Folia nie pomoże.',
+  'Kosmici oceniają Twoją lokalizację na 3/10.',
+  'Właśnie zrobili Ci zdjęcie. Bez filtra.',
+];
+
+let ufoMarker = null;
+let ufoSwath = null;
+let ufoOrbit = null;
+
+function launchUfo() {
+  if (ufoMarker) { map.removeLayer(ufoMarker); ufoMarker = null; }
+  if (ufoSwath) { map.removeLayer(ufoSwath); ufoSwath = null; }
+
+  // Fake orbit centered on user — passes nearby like a real satellite
+  const incl = Math.max(Math.abs(userLat) + 10, 50 + Math.random() * 30);
+  // Start phase so the sine wave crosses user's latitude soon
+  const startPhase = Math.asin(Math.min(Math.max(userLat / incl, -1), 1));
+  ufoOrbit = {
+    incl,
+    lonOffset: userLon - 30 + Math.random() * 60,
+    startTime: Date.now(),
+    startPhase,
+    period: 80000 + Math.random() * 40000,
+    direction: Math.random() < 0.5 ? 1 : -1,
+  };
+
+  ufoMarker = L.marker([0, 0], {
+    icon: L.divIcon({
+      className: 'sat-icon',
+      html: '<div class="ufo-icon">🛸</div>',
+      iconSize: [28, 28], iconAnchor: [14, 14],
+    }),
+    zIndexOffset: 1000,
+  }).addTo(map);
+
+  ufoSwath = L.circle([0, 0], {
+    radius: 400000,
+    color: '#a855f7',
+    fillColor: '#a855f7',
+    fillOpacity: 0.05,
+    weight: 1,
+    opacity: 0.15,
+  }).addTo(map);
+
+  const msg = UFO_MESSAGES[Math.floor(Math.random() * UFO_MESSAGES.length)];
+  ufoMarker.on('click', () => {
+    ufoMarker.bindPopup(`<div class="sat-popup">
+      <div class="sat-popup-name" style="color:#a855f7">???</div>
+      <div class="sat-popup-desc">${msg}</div>
+      <div class="sat-popup-row"><span>Operator</span><span>Nieznany</span></div>
+      <div class="sat-popup-row"><span>Pochodzenie</span><span>Poza Układem Słonecznym</span></div>
+      <div class="sat-popup-row"><span>Prędkość</span><span>Tak</span></div>
+    </div>`, { maxWidth: 240 }).openPopup();
+  });
+}
+
+function removeUfo() {
+  if (ufoMarker) { map.removeLayer(ufoMarker); ufoMarker = null; }
+  if (ufoSwath) { map.removeLayer(ufoSwath); ufoSwath = null; }
+  ufoOrbit = null;
+}
+
+function ufoAnimLoop() {
+  if (ufoOrbit && ufoMarker) {
+    const elapsed = (Date.now() - ufoOrbit.startTime) / ufoOrbit.period;
+    // Disappear after flying for 8-15 seconds
+    if ((Date.now() - ufoOrbit.startTime) > ufoOrbit.visibleFor) {
+      removeUfo();
+    } else {
+      const angle = ufoOrbit.startPhase + elapsed * 2 * Math.PI * ufoOrbit.direction;
+      const lat = ufoOrbit.incl * Math.sin(angle);
+      const lon = ((ufoOrbit.lonOffset + elapsed * 120) % 360 + 540) % 360 - 180;
+      ufoMarker.setLatLng([lat, lon]);
+      ufoSwath.setLatLng([lat, lon]);
+    }
+  }
+  requestAnimationFrame(ufoAnimLoop);
+}
+
+function scheduleUfo() {
+  requestAnimationFrame(ufoAnimLoop);
+  // First appearance after 2 seconds
+  setTimeout(() => {
+    launchUfo();
+    ufoOrbit.visibleFor = 8000 + Math.random() * 7000;
+  }, 2000);
+  // Then reappear every 15-30 seconds
+  setInterval(() => {
+    if (!ufoOrbit) {
+      launchUfo();
+      ufoOrbit.visibleFor = 8000 + Math.random() * 7000;
+    }
+  }, 15000 + Math.random() * 15000);
+}
+
 // ── START ──
 init();
+scheduleUfo();
 </script>
 </body>
 </html>
