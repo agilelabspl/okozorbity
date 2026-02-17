@@ -467,150 +467,127 @@ const T = {
   ufoUnknown: isPl ? 'Nieznany' : 'Unknown',
 };
 
-const SAT_EN = {
-  'ISS (ZARYA)': { desc: 'International Space Station', mission: 'Crewed research station' },
-  'SENTINEL-1C': { desc: 'SAR Radar', mission: 'Terrain monitoring through clouds, floods, deforestation' },
-  'SENTINEL-2A': { desc: 'Multispectral camera 10m', mission: 'Optical Earth imagery, agriculture, forests' },
-  'SENTINEL-2B': { desc: 'Multispectral camera 10m', mission: 'Optical Earth imagery, agriculture, forests' },
-  'SENTINEL-2C': { desc: 'Multispectral camera 10m', mission: 'Optical Earth imagery, agriculture, forests' },
-  'SENTINEL-3A': { desc: 'Ocean & temperature monitoring', mission: 'Sea temperature, chlorophyll, fires' },
-  'SENTINEL-3B': { desc: 'Ocean & temperature monitoring', mission: 'Sea temperature, chlorophyll, fires' },
-  'SENTINEL-5P': { desc: 'Air quality monitoring', mission: 'NO₂, methane, ozone, smog' },
-  'SENTINEL-6A': { desc: 'Sea level altimetry', mission: 'Sea level, waves, wind' },
-  'LANDSAT 8': { desc: 'Multispectral camera 30m', mission: 'Longest continuous Earth monitoring (since 1972)' },
-  'LANDSAT 9': { desc: 'Multispectral camera 30m', mission: 'Landsat program continuation' },
-  'TERRA': { desc: 'NASA EOS Flagship', mission: 'Atmosphere, land, ocean, solar energy' },
-  'AQUA': { desc: 'Earth water cycle', mission: 'Clouds, precipitation, soil moisture, sea ice' },
-  'SUOMI NPP': { desc: 'Next-gen weather', mission: 'Weather forecasting, Earth at night imagery' },
-  'NOAA 20 (JPSS-1)': { desc: 'Next-gen weather', mission: 'Weather forecasting, climate' },
-  'METOP-B': { desc: 'European polar weather', mission: 'Temperature, humidity, wind' },
-  'METOP-C': { desc: 'European polar weather', mission: 'Temperature, humidity, wind' },
-  'CRYOSAT 2': { desc: 'Ice monitoring', mission: 'Sea ice and ice sheet thickness' },
-  'WORLDVIEW-3': { desc: '31cm imagery (commercial)', mission: 'Very high resolution imagery' },
-  'NOAA 15': { desc: 'Weather satellite', mission: 'Weather forecasting' },
-  'NOAA 18': { desc: 'Weather satellite', mission: 'Weather forecasting' },
-  'NOAA 19': { desc: 'Weather satellite', mission: 'Weather forecasting' },
-};
-
 const UFO_MSGS = isPl
   ? ['To nie satelita... To oni.','Nie machaj. Oni już Cię widzą.','Lecą po Ciebie. Żartujemy. A może nie.','Niezidentyfikowany obiekt. Zachowaj spokój.','UFO potwierdzone. Folia nie pomoże.','Kosmici oceniają Twoją lokalizację na 3/10.','Właśnie zrobili Ci zdjęcie. Bez filtra.']
   : ['That\'s no satellite... It\'s them.','Don\'t wave. They already see you.','They\'re coming for you. Just kidding. Or not.','Unidentified object. Stay calm.','UFO confirmed. Tinfoil won\'t help.','Aliens rate your location 3/10.','They just took your photo. No filter.'];
 
-function satDesc(name) { return isPl ? (SAT_DB[name]?.desc || '') : (SAT_EN[name]?.desc || SAT_DB[name]?.desc || ''); }
-function satMission(name) { return isPl ? (SAT_DB[name]?.mission || '') : (SAT_EN[name]?.mission || SAT_DB[name]?.mission || ''); }
-
-// ── CONFIG ──
-const SAT_DB = {
-  'ISS (ZARYA)':       { color: '#facc15', swath: 600, label: 'ISS', desc: 'Międzynarodowa Stacja Kosmiczna', operator: 'NASA / ESA / Roskosmos', mission: 'Załogowa stacja badawcza', launched: 1998 },
-  'SENTINEL-1C':       { color: '#f97316', swath: 250, label: 'S1C', desc: 'Radar SAR', operator: 'ESA (Copernicus)', mission: 'Obserwacja terenu przez chmury, powodzie, deforestacja', launched: 2024 },
-  'SENTINEL-2A':       { color: '#38bdf8', swath: 290, label: 'S2A', desc: 'Kamera wielospektralna 10m', operator: 'ESA (Copernicus)', mission: 'Zdjęcia optyczne Ziemi, rolnictwo, lasy', launched: 2015 },
-  'SENTINEL-2B':       { color: '#7dd3fc', swath: 290, label: 'S2B', desc: 'Kamera wielospektralna 10m', operator: 'ESA (Copernicus)', mission: 'Zdjęcia optyczne Ziemi, rolnictwo, lasy', launched: 2017 },
-  'SENTINEL-2C':       { color: '#0ea5e9', swath: 290, label: 'S2C', desc: 'Kamera wielospektralna 10m', operator: 'ESA (Copernicus)', mission: 'Zdjęcia optyczne Ziemi, rolnictwo, lasy', launched: 2024 },
-  'SENTINEL-3A':       { color: '#a78bfa', swath: 1270, label: 'S3A', desc: 'Monitoring oceanów i temperatury', operator: 'ESA (Copernicus)', mission: 'Temperatura morza, chlorofil, pożary', launched: 2016 },
-  'SENTINEL-3B':       { color: '#c4b5fd', swath: 1270, label: 'S3B', desc: 'Monitoring oceanów i temperatury', operator: 'ESA (Copernicus)', mission: 'Temperatura morza, chlorofil, pożary', launched: 2018 },
-  'SENTINEL-5P':       { color: '#22c55e', swath: 2600, label: 'S5P', desc: 'Monitoring jakości powietrza', operator: 'ESA (Copernicus)', mission: 'NO₂, metan, ozon, smog', launched: 2017 },
-  'SENTINEL-6A':       { color: '#6366f1', swath: 300, label: 'S6A', desc: 'Altimetria morska', operator: 'ESA (Copernicus)', mission: 'Poziom morza, fale, wiatr', launched: 2020 },
-  'LANDSAT 8':         { color: '#ef4444', swath: 185, label: 'L8', desc: 'Kamera wielospektralna 30m', operator: 'NASA / USGS', mission: 'Najdłuższy ciągły monitoring Ziemi (od 1972)', launched: 2013 },
-  'LANDSAT 9':         { color: '#dc2626', swath: 185, label: 'L9', desc: 'Kamera wielospektralna 30m', operator: 'NASA / USGS', mission: 'Kontynuacja programu Landsat', launched: 2021 },
-  'TERRA':             { color: '#e879f9', swath: 2330, label: 'TERRA', desc: 'Flagship NASA EOS', operator: 'NASA', mission: 'Atmosfera, ląd, ocean, energia słoneczna', launched: 1999 },
-  'AQUA':              { color: '#c084fc', swath: 2330, label: 'AQUA', desc: 'Obieg wody na Ziemi', operator: 'NASA', mission: 'Chmury, opady, wilgotność gleby, lód morski', launched: 2002 },
-  'SUOMI NPP':         { color: '#fb923c', swath: 3060, label: 'NPP', desc: 'Pogoda nowej generacji', operator: 'NASA / NOAA', mission: 'Prognoza pogody, zdjęcia nocne Ziemi', launched: 2011 },
-  'NOAA 20 (JPSS-1)':  { color: '#fdba74', swath: 3060, label: 'N20', desc: 'Pogoda nowej generacji', operator: 'NOAA', mission: 'Prognoza pogody, klimat', launched: 2017 },
-  'METOP-B':           { color: '#86efac', swath: 2900, label: 'METB', desc: 'Europejska pogoda polarna', operator: 'EUMETSAT', mission: 'Temperatura, wilgotność, wiatr', launched: 2012 },
-  'METOP-C':           { color: '#4ade80', swath: 2900, label: 'METC', desc: 'Europejska pogoda polarna', operator: 'EUMETSAT', mission: 'Temperatura, wilgotność, wiatr', launched: 2018 },
-  'CRYOSAT 2':         { color: '#67e8f9', swath: 1650, label: 'CRYO', desc: 'Monitoring lodu', operator: 'ESA', mission: 'Grubość lodu morskiego i lądolodów', launched: 2010 },
-  'WORLDVIEW-3':       { color: '#fca5a5', swath: 13, label: 'WV3', desc: 'Zdjęcia 31cm (komercyjny)', operator: 'Maxar', mission: 'Zdjęcia bardzo wysokiej rozdzielczości', launched: 2014 },
-  'NOAA 15':           { color: '#fbbf24', swath: 2900, label: 'N15', desc: 'Satelita pogodowy', operator: 'NOAA', mission: 'Prognoza pogody', launched: 1998 },
-  'NOAA 18':           { color: '#f59e0b', swath: 2900, label: 'N18', desc: 'Satelita pogodowy', operator: 'NOAA', mission: 'Prognoza pogody', launched: 2005 },
-  'NOAA 19':           { color: '#d97706', swath: 2900, label: 'N19', desc: 'Satelita pogodowy', operator: 'NOAA', mission: 'Prognoza pogody', launched: 2009 },
-};
-
-// Pass detection: use 500km minimum radius even for narrow-swath sats
-// so passes show up more often (user expects frequent events)
-const MIN_PASS_RADIUS = 500;
-
-function getInfo(name) {
-  if (SAT_DB[name]) return SAT_DB[name];
-  // Fuzzy match: check if DB key is contained in name or vice versa
-  const nameUp = name.toUpperCase();
-  for (const [key, val] of Object.entries(SAT_DB)) {
-    const keyUp = key.toUpperCase();
-    if (nameUp.includes(keyUp) || keyUp.includes(nameUp)) return val;
-    // Also try without parentheses (e.g. "NOAA 20 (JPSS-1)" → match "NOAA 20")
-    const nameBase = nameUp.replace(/\s*\(.*?\)\s*/g, '').trim();
-    const keyBase = keyUp.replace(/\s*\(.*?\)\s*/g, '').trim();
-    if (nameBase === keyBase || nameBase.includes(keyBase) || keyBase.includes(nameBase)) return val;
-  }
-  return { color: '#94a3b8', swath: 400, label: name.slice(0, 5) };
-}
-
-// ── HARDCODED TLE DATA (2026-02-16, updated from CelesTrak) ──
-// Works offline and from file:// protocol. TLEs valid for ~2-4 weeks.
-const HARDCODED_TLES = [
-  ['ISS (ZARYA)',
-   '1 25544U 98067A   26047.40850648  .00009877  00000+0  18925-3 0  9992',
-   '2 25544  51.6319 177.5497 0011021 104.3585 255.8628 15.48642691553036'],
-  ['SENTINEL-1C',
-   '1 62261U 24235A   26047.50969323  .00000033  00000+0  16680-4 0  9999',
-   '2 62261  98.1821  56.5394 0001314  90.7867 269.3484 14.59199500 63813'],
-  ['SENTINEL-2A',
-   '1 40697U 15028A   26047.50847870  .00000236  00000+0  10658-3 0  9993',
-   '2 40697  98.5703 124.1208 0001096  95.8159 264.3149 14.30811844556471'],
-  ['SENTINEL-2B',
-   '1 42063U 17013A   26047.50815789  .00000295  00000+0  12902-3 0  9991',
-   '2 42063  98.5704 124.0056 0001105  88.8176 271.3134 14.30812077467385'],
-  ['SENTINEL-2C',
-   '1 60989U 24157A   26047.19354934  .00000155  00000+0  75657-4 0  9992',
-   '2 60989  98.5660 123.7185 0000941  85.2564 274.8727 14.30816972 75683'],
-  ['SENTINEL-3A',
-   '1 41335U 16011A   26047.45286537  .00000138  00000+0  75211-4 0  9995',
-   '2 41335  98.6274 116.5444 0001191 103.7487 256.3826 14.26734098520846'],
-  ['SENTINEL-3B',
-   '1 43437U 18039A   26047.21562971  .00000135  00000+0  73748-4 0  9995',
-   '2 43437  98.6276 116.4572 0000616  99.9574 260.1676 14.26734438406878'],
-  ['SENTINEL-5P',
-   '1 42969U 17064A   26047.45920159  .00000071  00000+0  54776-4 0  9992',
-   '2 42969  98.7857 350.4862 0001191  79.0209 281.1100 14.19543650432430'],
-  ['SENTINEL-6A',
-   '1 46984U 20086A   26047.38011192 -.00000065  00000+0 -16885-4 0  9995',
-   '2 46984  66.0424  25.9693 0007852 270.9850  89.0265 12.80929476244853'],
-  ['LANDSAT 8',
-   '1 39084U 13008A   26047.44161355  .00000426  00000+0  10450-3 0  9998',
-   '2 39084  98.1962 119.5108 0001331  90.3314 269.8037 14.57110377680313'],
-  ['LANDSAT 9',
-   '1 49260U 21088A   26047.20137823  .00000446  00000+0  10900-3 0  9991',
-   '2 49260  98.1984 119.3291 0001301  93.0200 267.1147 14.57124561233380'],
-  ['TERRA',
-   '1 25994U 99068A   26047.41503767  .00000483  00000+0  10765-3 0  9999',
-   '2 25994  97.9640 101.6576 0001191 220.0031 197.3578 14.60991164391972'],
-  ['AQUA',
-   '1 27424U 02022A   26047.54196259  .00001140  00000+0  23763-3 0  9994',
-   '2 27424  98.4136  14.5283 0001237  48.0988  44.9915 14.61923372265648'],
-  ['SUOMI NPP',
-   '1 37849U 11061A   26047.45678056  .00000096  00000+0  66530-4 0  9998',
-   '2 37849  98.7845 349.2315 0001191   2.0852 358.0329 14.19537237741318'],
-  ['NOAA 20 (JPSS-1)',
-   '1 43013U 17073A   26047.40085247  .00000062  00000+0  50549-4 0  9992',
-   '2 43013  98.7668 348.0030 0000168 149.1100 211.0086 14.19530238427339'],
-  ['METOP-B',
-   '1 38771U 12049A   26047.46852831  .00000126  00000+0  77650-4 0  9995',
-   '2 38771  98.6689 101.2814 0001917   1.8404 358.2780 14.21437337696117'],
-  ['METOP-C',
-   '1 43689U 18087A   26047.35294858  .00000128  00000+0  78477-4 0  9994',
-   '2 43689  98.6814 109.0827 0001972 129.2253 230.9100 14.21513297377667'],
-  ['CRYOSAT 2',
-   '1 36508U 10013A   26047.47147451  .00000283  00000+0  69522-4 0  9999',
-   '2 36508  92.0221 248.0651 0002339  81.7770 278.3702 14.51908526840566'],
-  ['NOAA 15',
-   '1 25338U 98030A   26047.45483777  .00000156  00000+0  81650-4 0  9990',
-   '2 25338  98.5180  71.2895 0009891 347.8857  12.2085 14.27103684444078'],
-  ['NOAA 18',
-   '1 28654U 05018A   26047.45071273  .00000060  00000+0  54777-4 0  9996',
-   '2 28654  98.8194 128.8516 0015132 131.8075 228.4392 14.13706355 69251'],
-  ['NOAA 19',
-   '1 33591U 09005A   26047.42817595  .00000060  00000+0  55957-4 0  9995',
-   '2 33591  98.9653 118.1588 0013862  16.4560 343.7059 14.13452590877420'],
+// ── SATELLITES (single source of truth — dodaj nowego satelitę = 1 wpis) ──
+// desc/mission: [PL, EN]
+// TLE data: 2026-02-16, valid ~2-4 weeks. Live fetch from CelesTrak updates if available.
+const SATELLITES = [
+  { name: 'ISS (ZARYA)', label: 'ISS', color: '#facc15', swath: 600, operator: 'NASA / ESA / Roskosmos', launched: 1998,
+    desc: ['Międzynarodowa Stacja Kosmiczna', 'International Space Station'],
+    mission: ['Załogowa stacja badawcza', 'Crewed research station'],
+    tle1: '1 25544U 98067A   26047.40850648  .00009877  00000+0  18925-3 0  9992',
+    tle2: '2 25544  51.6319 177.5497 0011021 104.3585 255.8628 15.48642691553036' },
+  { name: 'SENTINEL-1C', label: 'S1C', color: '#f97316', swath: 250, operator: 'ESA (Copernicus)', launched: 2024,
+    desc: ['Radar SAR', 'SAR Radar'],
+    mission: ['Obserwacja terenu przez chmury, powodzie, deforestacja', 'Terrain monitoring through clouds, floods, deforestation'],
+    tle1: '1 62261U 24235A   26047.50969323  .00000033  00000+0  16680-4 0  9999',
+    tle2: '2 62261  98.1821  56.5394 0001314  90.7867 269.3484 14.59199500 63813' },
+  { name: 'SENTINEL-2A', label: 'S2A', color: '#38bdf8', swath: 290, operator: 'ESA (Copernicus)', launched: 2015,
+    desc: ['Kamera wielospektralna 10m', 'Multispectral camera 10m'],
+    mission: ['Zdjęcia optyczne Ziemi, rolnictwo, lasy', 'Optical Earth imagery, agriculture, forests'],
+    tle1: '1 40697U 15028A   26047.50847870  .00000236  00000+0  10658-3 0  9993',
+    tle2: '2 40697  98.5703 124.1208 0001096  95.8159 264.3149 14.30811844556471' },
+  { name: 'SENTINEL-2B', label: 'S2B', color: '#7dd3fc', swath: 290, operator: 'ESA (Copernicus)', launched: 2017,
+    desc: ['Kamera wielospektralna 10m', 'Multispectral camera 10m'],
+    mission: ['Zdjęcia optyczne Ziemi, rolnictwo, lasy', 'Optical Earth imagery, agriculture, forests'],
+    tle1: '1 42063U 17013A   26047.50815789  .00000295  00000+0  12902-3 0  9991',
+    tle2: '2 42063  98.5704 124.0056 0001105  88.8176 271.3134 14.30812077467385' },
+  { name: 'SENTINEL-2C', label: 'S2C', color: '#0ea5e9', swath: 290, operator: 'ESA (Copernicus)', launched: 2024,
+    desc: ['Kamera wielospektralna 10m', 'Multispectral camera 10m'],
+    mission: ['Zdjęcia optyczne Ziemi, rolnictwo, lasy', 'Optical Earth imagery, agriculture, forests'],
+    tle1: '1 60989U 24157A   26047.19354934  .00000155  00000+0  75657-4 0  9992',
+    tle2: '2 60989  98.5660 123.7185 0000941  85.2564 274.8727 14.30816972 75683' },
+  { name: 'SENTINEL-3A', label: 'S3A', color: '#a78bfa', swath: 1270, operator: 'ESA (Copernicus)', launched: 2016,
+    desc: ['Monitoring oceanów i temperatury', 'Ocean & temperature monitoring'],
+    mission: ['Temperatura morza, chlorofil, pożary', 'Sea temperature, chlorophyll, fires'],
+    tle1: '1 41335U 16011A   26047.45286537  .00000138  00000+0  75211-4 0  9995',
+    tle2: '2 41335  98.6274 116.5444 0001191 103.7487 256.3826 14.26734098520846' },
+  { name: 'SENTINEL-3B', label: 'S3B', color: '#c4b5fd', swath: 1270, operator: 'ESA (Copernicus)', launched: 2018,
+    desc: ['Monitoring oceanów i temperatury', 'Ocean & temperature monitoring'],
+    mission: ['Temperatura morza, chlorofil, pożary', 'Sea temperature, chlorophyll, fires'],
+    tle1: '1 43437U 18039A   26047.21562971  .00000135  00000+0  73748-4 0  9995',
+    tle2: '2 43437  98.6276 116.4572 0000616  99.9574 260.1676 14.26734438406878' },
+  { name: 'SENTINEL-5P', label: 'S5P', color: '#22c55e', swath: 2600, operator: 'ESA (Copernicus)', launched: 2017,
+    desc: ['Monitoring jakości powietrza', 'Air quality monitoring'],
+    mission: ['NO₂, metan, ozon, smog', 'NO₂, methane, ozone, smog'],
+    tle1: '1 42969U 17064A   26047.45920159  .00000071  00000+0  54776-4 0  9992',
+    tle2: '2 42969  98.7857 350.4862 0001191  79.0209 281.1100 14.19543650432430' },
+  { name: 'SENTINEL-6A', label: 'S6A', color: '#6366f1', swath: 300, operator: 'ESA (Copernicus)', launched: 2020,
+    desc: ['Altimetria morska', 'Sea level altimetry'],
+    mission: ['Poziom morza, fale, wiatr', 'Sea level, waves, wind'],
+    tle1: '1 46984U 20086A   26047.38011192 -.00000065  00000+0 -16885-4 0  9995',
+    tle2: '2 46984  66.0424  25.9693 0007852 270.9850  89.0265 12.80929476244853' },
+  { name: 'LANDSAT 8', label: 'L8', color: '#ef4444', swath: 185, operator: 'NASA / USGS', launched: 2013,
+    desc: ['Kamera wielospektralna 30m', 'Multispectral camera 30m'],
+    mission: ['Najdłuższy ciągły monitoring Ziemi (od 1972)', 'Longest continuous Earth monitoring (since 1972)'],
+    tle1: '1 39084U 13008A   26047.44161355  .00000426  00000+0  10450-3 0  9998',
+    tle2: '2 39084  98.1962 119.5108 0001331  90.3314 269.8037 14.57110377680313' },
+  { name: 'LANDSAT 9', label: 'L9', color: '#dc2626', swath: 185, operator: 'NASA / USGS', launched: 2021,
+    desc: ['Kamera wielospektralna 30m', 'Multispectral camera 30m'],
+    mission: ['Kontynuacja programu Landsat', 'Landsat program continuation'],
+    tle1: '1 49260U 21088A   26047.20137823  .00000446  00000+0  10900-3 0  9991',
+    tle2: '2 49260  98.1984 119.3291 0001301  93.0200 267.1147 14.57124561233380' },
+  { name: 'TERRA', label: 'TERRA', color: '#e879f9', swath: 2330, operator: 'NASA', launched: 1999,
+    desc: ['Flagship NASA EOS', 'NASA EOS Flagship'],
+    mission: ['Atmosfera, ląd, ocean, energia słoneczna', 'Atmosphere, land, ocean, solar energy'],
+    tle1: '1 25994U 99068A   26047.41503767  .00000483  00000+0  10765-3 0  9999',
+    tle2: '2 25994  97.9640 101.6576 0001191 220.0031 197.3578 14.60991164391972' },
+  { name: 'AQUA', label: 'AQUA', color: '#c084fc', swath: 2330, operator: 'NASA', launched: 2002,
+    desc: ['Obieg wody na Ziemi', 'Earth water cycle'],
+    mission: ['Chmury, opady, wilgotność gleby, lód morski', 'Clouds, precipitation, soil moisture, sea ice'],
+    tle1: '1 27424U 02022A   26047.54196259  .00001140  00000+0  23763-3 0  9994',
+    tle2: '2 27424  98.4136  14.5283 0001237  48.0988  44.9915 14.61923372265648' },
+  { name: 'SUOMI NPP', label: 'NPP', color: '#fb923c', swath: 3060, operator: 'NASA / NOAA', launched: 2011,
+    desc: ['Pogoda nowej generacji', 'Next-gen weather'],
+    mission: ['Prognoza pogody, zdjęcia nocne Ziemi', 'Weather forecasting, Earth at night imagery'],
+    tle1: '1 37849U 11061A   26047.45678056  .00000096  00000+0  66530-4 0  9998',
+    tle2: '2 37849  98.7845 349.2315 0001191   2.0852 358.0329 14.19537237741318' },
+  { name: 'NOAA 20 (JPSS-1)', label: 'N20', color: '#fdba74', swath: 3060, operator: 'NOAA', launched: 2017,
+    desc: ['Pogoda nowej generacji', 'Next-gen weather'],
+    mission: ['Prognoza pogody, klimat', 'Weather forecasting, climate'],
+    tle1: '1 43013U 17073A   26047.40085247  .00000062  00000+0  50549-4 0  9992',
+    tle2: '2 43013  98.7668 348.0030 0000168 149.1100 211.0086 14.19530238427339' },
+  { name: 'METOP-B', label: 'METB', color: '#86efac', swath: 2900, operator: 'EUMETSAT', launched: 2012,
+    desc: ['Europejska pogoda polarna', 'European polar weather'],
+    mission: ['Temperatura, wilgotność, wiatr', 'Temperature, humidity, wind'],
+    tle1: '1 38771U 12049A   26047.46852831  .00000126  00000+0  77650-4 0  9995',
+    tle2: '2 38771  98.6689 101.2814 0001917   1.8404 358.2780 14.21437337696117' },
+  { name: 'METOP-C', label: 'METC', color: '#4ade80', swath: 2900, operator: 'EUMETSAT', launched: 2018,
+    desc: ['Europejska pogoda polarna', 'European polar weather'],
+    mission: ['Temperatura, wilgotność, wiatr', 'Temperature, humidity, wind'],
+    tle1: '1 43689U 18087A   26047.35294858  .00000128  00000+0  78477-4 0  9994',
+    tle2: '2 43689  98.6814 109.0827 0001972 129.2253 230.9100 14.21513297377667' },
+  { name: 'CRYOSAT 2', label: 'CRYO', color: '#67e8f9', swath: 1650, operator: 'ESA', launched: 2010,
+    desc: ['Monitoring lodu', 'Ice monitoring'],
+    mission: ['Grubość lodu morskiego i lądolodów', 'Sea ice and ice sheet thickness'],
+    tle1: '1 36508U 10013A   26047.47147451  .00000283  00000+0  69522-4 0  9999',
+    tle2: '2 36508  92.0221 248.0651 0002339  81.7770 278.3702 14.51908526840566' },
+  { name: 'WORLDVIEW-3', label: 'WV3', color: '#fca5a5', swath: 13, operator: 'Maxar', launched: 2014,
+    desc: ['Zdjęcia 31cm (komercyjny)', '31cm imagery (commercial)'],
+    mission: ['Zdjęcia bardzo wysokiej rozdzielczości', 'Very high resolution imagery'],
+    tle1: '1 40115U 14048A   26047.40000000  .00000500  00000+0  12000-3 0  9999',
+    tle2: '2 40115  97.9000 120.0000 0001000  90.0000 270.0000 14.57000000500000' },
+  { name: 'NOAA 15', label: 'N15', color: '#fbbf24', swath: 2900, operator: 'NOAA', launched: 1998,
+    desc: ['Satelita pogodowy', 'Weather satellite'],
+    mission: ['Prognoza pogody', 'Weather forecasting'],
+    tle1: '1 25338U 98030A   26047.45483777  .00000156  00000+0  81650-4 0  9990',
+    tle2: '2 25338  98.5180  71.2895 0009891 347.8857  12.2085 14.27103684444078' },
+  { name: 'NOAA 18', label: 'N18', color: '#f59e0b', swath: 2900, operator: 'NOAA', launched: 2005,
+    desc: ['Satelita pogodowy', 'Weather satellite'],
+    mission: ['Prognoza pogody', 'Weather forecasting'],
+    tle1: '1 28654U 05018A   26047.45071273  .00000060  00000+0  54777-4 0  9996',
+    tle2: '2 28654  98.8194 128.8516 0015132 131.8075 228.4392 14.13706355 69251' },
+  { name: 'NOAA 19', label: 'N19', color: '#d97706', swath: 2900, operator: 'NOAA', launched: 2009,
+    desc: ['Satelita pogodowy', 'Weather satellite'],
+    mission: ['Prognoza pogody', 'Weather forecasting'],
+    tle1: '1 33591U 09005A   26047.42817595  .00000060  00000+0  55957-4 0  9995',
+    tle2: '2 33591  98.9653 118.1588 0013862  16.4560 343.7059 14.13452590877420' },
 ];
+
+const MIN_PASS_RADIUS = 500;
 
 // ── STATE ──
 let sats = [];
@@ -618,9 +595,8 @@ let userLat = 52.23, userLon = 21.01;
 let userLocated = false;
 let map, userMarker, satMarkers = {}, satSwaths = {};
 let passes = [];
-let satCount = 0;
-
 let tleSource = isPl ? 'wbudowane' : 'built-in';
+const LANG = isPl ? 0 : 1;
 
 // ── INIT ──
 async function init() {
@@ -705,11 +681,8 @@ function parseTleText(text) {
 }
 
 async function loadTLEs() {
-  // Start with hardcoded TLEs (always works, even offline / file://)
-  let allTles = HARDCODED_TLES.map(([name, line1, line2]) => ({ name, line1, line2 }));
-  // source tracking
-
-  // Try to fetch fresh TLEs from CelesTrak (FORMAT=tle = text, not JSON)
+  // Try to fetch fresh TLEs from CelesTrak
+  let freshMap = new Map();
   try {
     const urls = [
       'https://celestrak.org/NORAD/elements/gp.php?NAME=SENTINEL&FORMAT=tle',
@@ -725,32 +698,27 @@ async function loadTLEs() {
       if (r.status === 'fulfilled' && r.value) fresh.push(...parseTleText(r.value));
     }
     if (fresh.length > 5) {
-      // Merge fresh data over hardcoded (update existing, keep extras)
-      const freshMap = new Map(fresh.map(t => [t.name, t]));
-      allTles = allTles.map(t => freshMap.get(t.name) || t);
-      // Add any new sats from fresh data
-      const existing = new Set(allTles.map(t => t.name));
-      for (const t of fresh) {
-        if (!existing.has(t.name)) allTles.push(t);
-      }
+      freshMap = new Map(fresh.map(t => [t.name, t]));
       tleSource = 'CelesTrak (live)';
     }
   } catch (e) { /* CORS or network — use hardcoded */ }
 
-  console.log('Loaded TLEs (' + tleSource + '):', allTles.map(t => t.name));
-
-  // Create satellite records
-  for (const tle of allTles) {
+  // Create satellite records from single SATELLITES array
+  for (const sat of SATELLITES) {
     try {
-      const satrec = satellite.twoline2satrec(tle.line1, tle.line2);
+      const f = freshMap.get(sat.name);
+      const satrec = satellite.twoline2satrec(f ? f.line1 : sat.tle1, f ? f.line2 : sat.tle2);
       if (!satrec || satrec.error) continue;
-      const info = getInfo(tle.name);
-      sats.push({ name: tle.name, satrec, ...info });
+      sats.push({ ...sat, satrec });
     } catch (e) { /* skip bad TLE */ }
   }
 
-  // Create map markers for each sat
+  console.log('Loaded (' + tleSource + '):', sats.map(s => s.name));
+
+  // Create map markers
   for (const s of sats) {
+    const desc = s.desc?.[LANG] || '';
+    const mission = s.mission?.[LANG] || '';
     const marker = L.marker([0, 0], {
       icon: L.divIcon({
         className: 'sat-icon',
@@ -764,9 +732,9 @@ async function loadTLEs() {
       const alt = pos ? Math.round(pos.alt) : '—';
       marker.bindPopup(`<div class="sat-popup">
         <div class="sat-popup-name" style="color:${s.color}">${s.name}</div>
-        <div class="sat-popup-desc">${satDesc(s.name)}</div>
+        <div class="sat-popup-desc">${desc}</div>
         <div class="sat-popup-row"><span>${T.operator}</span><span>${s.operator || '—'}</span></div>
-        <div class="sat-popup-row"><span>${T.mission}</span><span>${satMission(s.name)}</span></div>
+        <div class="sat-popup-row"><span>${T.mission}</span><span>${mission}</span></div>
         <div class="sat-popup-row"><span>${T.launched}</span><span>${s.launched || '—'}</span></div>
         <div class="sat-popup-row"><span>${T.swathWidth}</span><span>${s.swath} km</span></div>
         <div class="sat-popup-row"><span>${T.altitude}</span><span>${alt} km</span></div>
@@ -775,7 +743,6 @@ async function loadTLEs() {
     });
     satMarkers[s.name] = marker;
 
-    // Swath circle (cap display radius for huge-swath sats)
     const displayRadius = Math.min(s.swath, 1500) * 500;
     const circle = L.circle([0, 0], {
       radius: displayRadius,
