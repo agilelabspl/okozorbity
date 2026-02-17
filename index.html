@@ -3,7 +3,27 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Oko z Orbity</title>
+<title>Oko z Orbity — Który satelita Cię teraz obserwuje?</title>
+<meta name="description" content="Sprawdź w czasie rzeczywistym, które satelity przelatują nad Twoją głową. Mapa orbitalnych szpiegów z kosmosu — ISS, Sentinel, Landsat i inne.">
+<link rel="canonical" href="https://agilelabspl.github.io/okozorbity/">
+<meta name="robots" content="index, follow">
+<meta name="author" content="Paweł Lewiński">
+<meta name="theme-color" content="#0a0e1a">
+
+<!-- Open Graph -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="Oko z Orbity — Który satelita Cię teraz obserwuje?">
+<meta property="og:description" content="Sprawdź w czasie rzeczywistym, które satelity przelatują nad Twoją głową. Mapa orbitalnych szpiegów z kosmosu.">
+<meta property="og:url" content="https://agilelabspl.github.io/okozorbity/">
+<meta property="og:locale" content="pl_PL">
+<meta property="og:site_name" content="Oko z Orbity">
+<meta property="og:locale:alternate" content="en_US">
+
+<!-- Twitter Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Oko z Orbity — Który satelita Cię teraz obserwuje?">
+<meta name="twitter:description" content="Sprawdź w czasie rzeczywistym, które satelity przelatują nad Twoją głową. Mapa orbitalnych szpiegów z kosmosu.">
+
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-C9XL9PLG0H"></script>
 <script>window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-C9XL9PLG0H');</script>
 <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -414,6 +434,71 @@ h1 {
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/satellite.js@5.0.0/dist/satellite.min.js"></script>
 <script>
+// ── I18N ──
+const isPl = navigator.language.startsWith('pl');
+document.documentElement.lang = isPl ? 'pl' : 'en';
+const T = {
+  loading: isPl ? 'Szukam satelitów...' : 'Searching for satellites...',
+  title: isPl ? 'Który satelita Cię obserwuje?' : 'Which satellite is watching you?',
+  pageTitle: isPl ? 'Oko z Orbity — Który satelita Cię teraz obserwuje?' : 'Eye from Orbit — Which satellite is watching you right now?',
+  alertSearching: isPl ? 'Szukam satelitów nad Tobą...' : 'Searching for satellites above you...',
+  nextPassLabel: isPl ? 'Najbliższy przelot' : 'Next pass',
+  upcomingPasses: isPl ? 'Nadchodzące przeloty (24h)' : 'Upcoming passes (24h)',
+  watchingNow: isPl ? 'OBSERWUJE CIĘ TERAZ!' : 'IS WATCHING YOU NOW!',
+  distance: isPl ? 'odległość' : 'distance',
+  noOneWatching: isPl ? 'Nikt Cię teraz nie obserwuje z kosmosu.' : 'Nobody is watching you from space right now.',
+  unlessAliens: isPl ? 'No chyba, że kosmici.' : 'Unless... aliens.',
+  calculating: isPl ? 'Obliczam...' : 'Calculating...',
+  calculatingPasses: isPl ? 'Obliczam przeloty...' : 'Calculating passes...',
+  you: isPl ? 'TY' : 'YOU',
+  operator: 'Operator',
+  mission: isPl ? 'Misja' : 'Mission',
+  launched: isPl ? 'Start' : 'Launched',
+  swathWidth: isPl ? 'Szerokość pasa' : 'Swath width',
+  altitude: isPl ? 'Wysokość' : 'Altitude',
+  distFromYou: isPl ? 'Odległość od Ciebie' : 'Distance from you',
+  sats: isPl ? 'satelitów' : 'satellites',
+  updateEvery: isPl ? 'Aktualizacja co sekundę' : 'Updated every second',
+  source: isPl ? 'Źródło' : 'Source',
+  ufoOriginLabel: isPl ? 'Pochodzenie' : 'Origin',
+  ufoOriginVal: isPl ? 'Poza Układem Słonecznym' : 'Beyond the Solar System',
+  ufoSpeed: isPl ? 'Prędkość' : 'Speed',
+  ufoSpeedVal: isPl ? 'Tak' : 'Yes',
+  ufoUnknown: isPl ? 'Nieznany' : 'Unknown',
+};
+
+const SAT_EN = {
+  'ISS (ZARYA)': { desc: 'International Space Station', mission: 'Crewed research station' },
+  'SENTINEL-1C': { desc: 'SAR Radar', mission: 'Terrain monitoring through clouds, floods, deforestation' },
+  'SENTINEL-2A': { desc: 'Multispectral camera 10m', mission: 'Optical Earth imagery, agriculture, forests' },
+  'SENTINEL-2B': { desc: 'Multispectral camera 10m', mission: 'Optical Earth imagery, agriculture, forests' },
+  'SENTINEL-2C': { desc: 'Multispectral camera 10m', mission: 'Optical Earth imagery, agriculture, forests' },
+  'SENTINEL-3A': { desc: 'Ocean & temperature monitoring', mission: 'Sea temperature, chlorophyll, fires' },
+  'SENTINEL-3B': { desc: 'Ocean & temperature monitoring', mission: 'Sea temperature, chlorophyll, fires' },
+  'SENTINEL-5P': { desc: 'Air quality monitoring', mission: 'NO₂, methane, ozone, smog' },
+  'SENTINEL-6A': { desc: 'Sea level altimetry', mission: 'Sea level, waves, wind' },
+  'LANDSAT 8': { desc: 'Multispectral camera 30m', mission: 'Longest continuous Earth monitoring (since 1972)' },
+  'LANDSAT 9': { desc: 'Multispectral camera 30m', mission: 'Landsat program continuation' },
+  'TERRA': { desc: 'NASA EOS Flagship', mission: 'Atmosphere, land, ocean, solar energy' },
+  'AQUA': { desc: 'Earth water cycle', mission: 'Clouds, precipitation, soil moisture, sea ice' },
+  'SUOMI NPP': { desc: 'Next-gen weather', mission: 'Weather forecasting, Earth at night imagery' },
+  'NOAA 20 (JPSS-1)': { desc: 'Next-gen weather', mission: 'Weather forecasting, climate' },
+  'METOP-B': { desc: 'European polar weather', mission: 'Temperature, humidity, wind' },
+  'METOP-C': { desc: 'European polar weather', mission: 'Temperature, humidity, wind' },
+  'CRYOSAT 2': { desc: 'Ice monitoring', mission: 'Sea ice and ice sheet thickness' },
+  'WORLDVIEW-3': { desc: '31cm imagery (commercial)', mission: 'Very high resolution imagery' },
+  'NOAA 15': { desc: 'Weather satellite', mission: 'Weather forecasting' },
+  'NOAA 18': { desc: 'Weather satellite', mission: 'Weather forecasting' },
+  'NOAA 19': { desc: 'Weather satellite', mission: 'Weather forecasting' },
+};
+
+const UFO_MSGS = isPl
+  ? ['To nie satelita... To oni.','Nie machaj. Oni już Cię widzą.','Lecą po Ciebie. Żartujemy. A może nie.','Niezidentyfikowany obiekt. Zachowaj spokój.','UFO potwierdzone. Folia nie pomoże.','Kosmici oceniają Twoją lokalizację na 3/10.','Właśnie zrobili Ci zdjęcie. Bez filtra.']
+  : ['That\'s no satellite... It\'s them.','Don\'t wave. They already see you.','They\'re coming for you. Just kidding. Or not.','Unidentified object. Stay calm.','UFO confirmed. Tinfoil won\'t help.','Aliens rate your location 3/10.','They just took your photo. No filter.'];
+
+function satDesc(name) { return isPl ? (SAT_DB[name]?.desc || '') : (SAT_EN[name]?.desc || SAT_DB[name]?.desc || ''); }
+function satMission(name) { return isPl ? (SAT_DB[name]?.mission || '') : (SAT_EN[name]?.mission || SAT_DB[name]?.mission || ''); }
+
 // ── CONFIG ──
 const SAT_DB = {
   'ISS (ZARYA)':       { color: '#facc15', swath: 600, label: 'ISS', desc: 'Międzynarodowa Stacja Kosmiczna', operator: 'NASA / ESA / Roskosmos', mission: 'Załogowa stacja badawcza', launched: 1998 },
@@ -535,17 +620,25 @@ let map, userMarker, satMarkers = {}, satSwaths = {};
 let passes = [];
 let satCount = 0;
 
-let tleSource = 'wbudowane';
+let tleSource = isPl ? 'wbudowane' : 'built-in';
 
 // ── INIT ──
 async function init() {
+  // Apply language to static HTML
+  document.title = T.pageTitle;
+  document.querySelector('#loading p').textContent = T.loading;
+  document.querySelector('h1').textContent = T.title;
+  document.getElementById('alert-bar').textContent = T.alertSearching;
+  document.querySelector('.countdown-label').textContent = T.nextPassLabel;
+  document.querySelector('.passes-title').textContent = T.upcomingPasses;
+
   initMap();
   getUserLocation();
   await loadTLEs();
   calculatePasses();
   document.getElementById('loading').classList.add('hidden');
   document.getElementById('status-text').textContent =
-    `${sats.length} satelitów · Aktualizacja co sekundę · Źródło: ${tleSource}`;
+    `${sats.length} ${T.sats} · ${T.updateEvery} · ${T.source}: ${tleSource}`;
   updateLoop();
 }
 
@@ -585,7 +678,7 @@ function placeUser() {
   userMarker = L.marker([userLat, userLon], {
     icon: L.divIcon({
       className: 'sat-icon',
-      html: '<div class="sat-marker user-marker"><div class="ring"></div><div class="core"></div><div class="sat-label">TY</div></div>',
+      html: `<div class="sat-marker user-marker"><div class="ring"></div><div class="core"></div><div class="sat-label">${T.you}</div></div>`,
       iconSize: [28, 28], iconAnchor: [14, 14],
     })
   }).addTo(map);
@@ -671,13 +764,13 @@ async function loadTLEs() {
       const alt = pos ? Math.round(pos.alt) : '—';
       marker.bindPopup(`<div class="sat-popup">
         <div class="sat-popup-name" style="color:${s.color}">${s.name}</div>
-        <div class="sat-popup-desc">${s.desc || ''}</div>
-        <div class="sat-popup-row"><span>Operator</span><span>${s.operator || '—'}</span></div>
-        <div class="sat-popup-row"><span>Misja</span><span>${s.mission || '—'}</span></div>
-        <div class="sat-popup-row"><span>Start</span><span>${s.launched || '—'}</span></div>
-        <div class="sat-popup-row"><span>Szerokość pasa</span><span>${s.swath} km</span></div>
-        <div class="sat-popup-row"><span>Wysokość</span><span>${alt} km</span></div>
-        <div class="sat-popup-row"><span>Odległość od Ciebie</span><span>${dist} km</span></div>
+        <div class="sat-popup-desc">${satDesc(s.name)}</div>
+        <div class="sat-popup-row"><span>${T.operator}</span><span>${s.operator || '—'}</span></div>
+        <div class="sat-popup-row"><span>${T.mission}</span><span>${satMission(s.name)}</span></div>
+        <div class="sat-popup-row"><span>${T.launched}</span><span>${s.launched || '—'}</span></div>
+        <div class="sat-popup-row"><span>${T.swathWidth}</span><span>${s.swath} km</span></div>
+        <div class="sat-popup-row"><span>${T.altitude}</span><span>${alt} km</span></div>
+        <div class="sat-popup-row"><span>${T.distFromYou}</span><span>${dist} km</span></div>
       </div>`, { maxWidth: 260 }).openPopup();
     });
     satMarkers[s.name] = marker;
@@ -759,13 +852,14 @@ function calculatePasses() {
 function renderPasses() {
   const list = document.getElementById('passes-list');
   if (passes.length === 0) {
-    list.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:8px">Obliczam przeloty...</div>';
+    list.innerHTML = `<div style="color:var(--muted);font-size:0.8rem;padding:8px">${T.calculatingPasses}</div>`;
     return;
   }
 
+  const loc = isPl ? 'pl-PL' : 'en-GB';
   list.innerHTML = passes.slice(0, 12).map(p => {
-    const timeStr = p.time.toLocaleTimeString('pl-PL', { hour: '2-digit', minute: '2-digit' });
-    const dateStr = p.time.toLocaleDateString('pl-PL', { day: 'numeric', month: 'short' });
+    const timeStr = p.time.toLocaleTimeString(loc, { hour: '2-digit', minute: '2-digit' });
+    const dateStr = p.time.toLocaleDateString(loc, { day: 'numeric', month: 'short' });
     return `<div class="pass-item">
       <div class="pass-dot" style="background:${p.color}"></div>
       <div class="pass-name">${p.name}</div>
@@ -802,10 +896,10 @@ function updateLoop() {
     const alertBar = document.getElementById('alert-bar');
     if (anyOverhead) {
       alertBar.classList.add('danger');
-      alertBar.innerHTML = `${overheadName} OBSERWUJE CIĘ TERAZ!<div class="alert-sub">odległość: ${Math.round(overheadDist)} km</div>`;
+      alertBar.innerHTML = `${overheadName} ${T.watchingNow}<div class="alert-sub">${T.distance}: ${Math.round(overheadDist)} km</div>`;
     } else {
       alertBar.classList.remove('danger');
-      alertBar.innerHTML = `Nikt Cię teraz nie obserwuje z kosmosu.<div class="alert-sub">No chyba, że kosmici.</div>`;
+      alertBar.innerHTML = `${T.noOneWatching}<div class="alert-sub">${T.unlessAliens}</div>`;
     }
 
     updateCountdown(now);
@@ -815,7 +909,7 @@ function updateLoop() {
 function updateCountdown(now) {
   const nextPass = passes.find(p => p.time > now);
   if (!nextPass) {
-    document.getElementById('next-sat').textContent = 'Obliczam...';
+    document.getElementById('next-sat').textContent = T.calculating;
     document.getElementById('next-time').textContent = '--:--:--';
     document.getElementById('next-dist').textContent = '';
     return;
@@ -830,19 +924,10 @@ function updateCountdown(now) {
   document.getElementById('next-sat').style.color = nextPass.color;
   document.getElementById('next-time').textContent =
     (h > 0 ? h + 'h ' : '') + String(m).padStart(2, '0') + 'min ' + String(s).padStart(2, '0') + 's';
-  document.getElementById('next-dist').textContent = `odległość: ~${nextPass.dist} km`;
+  document.getElementById('next-dist').textContent = `${T.distance}: ~${nextPass.dist} km`;
 }
 
 // ── UFO EASTER EGG ──
-const UFO_MESSAGES = [
-  'To nie satelita... To oni.',
-  'Nie machaj. Oni już Cię widzą.',
-  'Lecą po Ciebie. Żartujemy. A może nie.',
-  'Niezidentyfikowany obiekt. Zachowaj spokój.',
-  'UFO potwierdzone. Folia nie pomoże.',
-  'Kosmici oceniają Twoją lokalizację na 3/10.',
-  'Właśnie zrobili Ci zdjęcie. Bez filtra.',
-];
 
 let ufoMarker = null;
 let ufoSwath = null;
@@ -883,14 +968,14 @@ function launchUfo() {
     opacity: 0.15,
   }).addTo(map);
 
-  const msg = UFO_MESSAGES[Math.floor(Math.random() * UFO_MESSAGES.length)];
+  const msg = UFO_MSGS[Math.floor(Math.random() * UFO_MSGS.length)];
   ufoMarker.on('click', () => {
     ufoMarker.bindPopup(`<div class="sat-popup">
       <div class="sat-popup-name" style="color:#a855f7">???</div>
       <div class="sat-popup-desc">${msg}</div>
-      <div class="sat-popup-row"><span>Operator</span><span>Nieznany</span></div>
-      <div class="sat-popup-row"><span>Pochodzenie</span><span>Poza Układem Słonecznym</span></div>
-      <div class="sat-popup-row"><span>Prędkość</span><span>Tak</span></div>
+      <div class="sat-popup-row"><span>${T.operator}</span><span>${T.ufoUnknown}</span></div>
+      <div class="sat-popup-row"><span>${T.ufoOriginLabel}</span><span>${T.ufoOriginVal}</span></div>
+      <div class="sat-popup-row"><span>${T.ufoSpeed}</span><span>${T.ufoSpeedVal}</span></div>
     </div>`, { maxWidth: 240 }).openPopup();
   });
 }
